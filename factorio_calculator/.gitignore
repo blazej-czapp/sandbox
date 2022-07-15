@@ -1,0 +1,6 @@
+CMakeFiles/**
+build/**
+cmake-build-debug/**
+.vscode/**
+.idea/**
+.metals/**
