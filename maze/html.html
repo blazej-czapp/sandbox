@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script type="text/javascript">
+    let WIDTH = 100;
+    let HEIGHT = 100;
+    let TILE_SIZE = 10;
+    let WALL_WIDTH = 1;
+    let RED = 'rgba(230, 230, 230, 1.0)';
+    let WHITE = 'rgba(255, 255, 255, 1.0)';
+
+    // https://stackoverflow.com/a/2450976/194825
+    function shuffle(array) {
+        let currentIndex = array.length;
+
+        // While there remain elements to shuffle...
+        while (0 !== currentIndex) {
+
+            // Pick a remaining element...
+            let randomIndex = Math.floor(Math.random() * currentIndex);
+            currentIndex -= 1;
+
+            // And swap it with the current element.
+            let temporaryValue = array[currentIndex];
+            array[currentIndex] = array[randomIndex];
+            array[randomIndex] = temporaryValue;
+        }
+
+        return array;
+    }
+
+    function index(x, y) {
+        return y*WIDTH + x;
+    }
+
+    // returns true if tile x,y lies on the path from top-left to bottom-right corner
+    function visit(x, y, visited, traversed) {
+        visited[index(x, y)].seen = true;
+
+        if (x == WIDTH - 1 && y == HEIGHT - 1) {
+            visited[index(x, y)].onPathToExit = true;
+            return true;
+        }
+
+        let unvisitedNeighbours = [];
+        if (x > 0 && !visited[index(x-1, y)].seen) {
+            unvisitedNeighbours.push({x: x-1, y: y});
+        }
+        if (x < WIDTH-1 && !visited[index(x+1, y)].seen) {
+            unvisitedNeighbours.push({x: x+1, y: y});
+        }
+        if (y > 0 && !visited[index(x, y-1)].seen) {
+            unvisitedNeighbours.push({x: x, y: y-1});
+        }
+        if (y < HEIGHT-1 && !visited[index(x, y+1)].seen) {
+            unvisitedNeighbours.push({x: x, y: y+1});
+        }
+
+        shuffle(unvisitedNeighbours);
+
+        for (let i = 0; i < unvisitedNeighbours.length; i++) {
+            let destination = unvisitedNeighbours[i];
+            // check in case the destination got visited in a recursive call
+            if (!visited[index(destination.x, destination.y)].seen) {
+                traversed.push({from: {x: x, y: y}, to: destination});
+                visited[index(x, y)].onPathToExit |= visit(destination.x, destination.y, visited, traversed);
+            }
+        }
+
+        return visited[index(x, y)].onPathToExit;
+    }
+
+    // Generates a maze by traversing a grid of nodes with DFS, selecting children to visit at random and never
+    // re-visiting the same node. This guarantees a solution exists and that it's unique (and that all nodes are
+    // visited). The record of parent-child paths traversed yields the maze layout.
+    // Arbitrarily selecting the top left corner as start and bottom right as exit.
+    function generateMaze() {
+        let visited = [];
+        for (let i = 0; i < HEIGHT; i++) {
+            for (let j = 0; j < WIDTH; j++) {
+                visited[i*WIDTH + j] = {seen: false, onPathToExit: false};
+            }
+        }
+
+        // only the root is visited to begin with
+        visited[0].seen = true;
+        visited[0].onPathToExit = true;
+
+        // no edges to begin with
+        let traversed = [];
+
+        visit(0, 0, visited, traversed);
+
+        return { maze: traversed, visited: visited };
+    }
+
+    function drawCorridor(corridor, ctx) {
+        ctx.fillRect(Math.min(corridor.from.x, corridor.to.x) * TILE_SIZE + WALL_WIDTH,
+                     Math.min(corridor.from.y, corridor.to.y) * TILE_SIZE + WALL_WIDTH,
+                     (Math.abs(corridor.to.x - corridor.from.x) + 1) * TILE_SIZE - WALL_WIDTH * 2,
+                     (Math.abs(corridor.to.y - corridor.from.y) + 1) * TILE_SIZE - WALL_WIDTH * 2);
+    }
+
+    function drawMaze() {
+        var canvas = document.getElementById('canvas');
+        var ctx = canvas.getContext('2d');
+
+        ctx.fillStyle = 'rgba(0, 0, 200, 0.5)';
+        ctx.fillRect(0, 0, 1000, 1000);
+
+        let {maze, visited} = generateMaze();
+
+        ctx.fillStyle = WHITE;
+        maze.forEach((corridor) => {
+            drawCorridor(corridor, ctx);
+        });
+        
+        // plot the path from start to exit in a different colour
+        ctx.fillStyle = RED;
+        maze.forEach((corridor) => {
+            if (visited[index(corridor.to.x, corridor.to.y)].onPathToExit
+                && visited[index(corridor.to.x, corridor.to.y)].onPathToExit) {
+                drawCorridor(corridor, ctx);
+            }
+        });
+
+        // a record of how you can tie yourself in knots if you don't take a step back and look at the big picture;
+        // instead of drawing the maze and then the path to exit (the two blocks calling drawCorridor() above), I tried
+        // to do both at the same time
+        // maze.forEach((corridor) => {
+            // // We can do this two ways - plot walls between tiles where no path exists, or plot corridors themselves
+            // // where path does exist. Since the maze is represented by pairs of connected tiles, we go with the latter.
+            // // Plotting the path from start to finish complicates things because corridors that fork can draw over
+            // // each other with different colours. Drawing cells individually doesn't work because it causes them to have
+            // // walls on all sides.
+            // // So, rather than worrying about fractional pixels and erasing walls, plot the corridor (two adjacent tiles
+            // // and the connection between them) with the right colour for that corridor and fix up both tiles in case
+            // // we drew over a tile that leads to exit.
+            // if (visited[index(corridor.to.x, corridor.to.y)].onPathToExit
+            //     && visited[index(corridor.to.x, corridor.to.y)].onPathToExit) {
+            //     ctx.fillStyle = RED;
+            // } else {
+            //     ctx.fillStyle = WHITE;
+            // }
+
+            // // plot current corridor
+            // ctx.fillRect(Math.min(corridor.from.x, corridor.to.x) * TILE_SIZE + WALL_WIDTH,
+            //              Math.min(corridor.from.y, corridor.to.y) * TILE_SIZE + WALL_WIDTH,
+            //              (Math.abs(corridor.to.x - corridor.from.x) + 1) * TILE_SIZE - WALL_WIDTH * 2,
+            //              (Math.abs(corridor.to.y - corridor.from.y) + 1) * TILE_SIZE - WALL_WIDTH * 2);
+
+            // function plotTile(x, y) {
+            //     if (visited[index(x, y)].onPathToExit) {
+            //         ctx.fillStyle = RED;
+            //     } else {
+            //         ctx.fillStyle = WHITE;
+            //     }
+            //     ctx.fillRect(x * TILE_SIZE + WALL_WIDTH,
+            //                  y * TILE_SIZE + WALL_WIDTH,
+            //                  TILE_SIZE - WALL_WIDTH * 2,
+            //                  TILE_SIZE - WALL_WIDTH * 2);                
+            // }
+
+            // // fix up tiles in case we drew over a tile leading to exit
+            // plotTile(corridor.from.x, corridor.from.y);
+            // plotTile(corridor.to.x, corridor.to.y);
+        // });
+    }
+</script>
+</head>
+<body onload="drawMaze();">
+    <canvas id="canvas" width="1000" height="1000"></canvas>
+</body>
+</html>
