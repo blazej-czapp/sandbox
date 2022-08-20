@@ -1,0 +1,6 @@
+each new socket connects on a different port - this can be seen from the scope under 'client': ['127.0.0.1', 56564] - but this isn't HTTP port,
+that's 8000 for all of them, I think once HTTP upgrades to WebSocket it assigns a new port
+
+let socket = new WebSocket("ws://127.0.0.1:8000");
+socket.onmessage = (event) => { console.log(event.data); }
+socket.send("ping");
