@@ -1,0 +1,47 @@
+<html>
+<head>
+  <link href="style.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+  <div id="game">
+    <div class="container">
+      <div id="leftColLabels" class="labelColumn"></div>
+      <div id="leftCol" class="textColumn"></div>
+      <div id="rightColLabels" class="labelColumn"></div>
+      <div id="rightCol" class="textColumn"></div>
+      <div class="stats">
+        Time: <span id="timer"></span><br/>
+        Score: <span id="score"></span><br/>
+        Attempts: <span id="attempts"></span>
+      </div>
+    </div>
+    <div id="output" class="output"></div>
+  </div>
+  <div id="usernameForm" class="usernameForm" style="display: none;">
+    <div class="finalStats">Score: <span id="finalScore"></span></div>
+    <div class="usernameHeader">Enter your name:</div>
+    <form onsubmit='return submitUsername();'>
+      <input type="text" id="usernameField"/>
+      <input type="submit" value="Submit"/>
+    </form>
+  </div>
+  <div id="scoreboard" class="floatingContainer" style="display: none;">
+    <div class="centredOuter">
+      <div class="centredInner">
+        <h1>High Scores</h1>
+        <table id="scoreboardData">
+          <tr>
+            <th class="positionHeader">#</th>
+            <th class="nameHeader">Name</th>
+            <th class="scoreHeader">Score</th>
+          </tr>
+        </table>
+        <form class="restartForm" onsubmit="restartGame(); return false;">
+          <input type="submit" value="Play again"/>
+        </form>
+      </div>
+    </div>
+  </div>
+  <script type="text/javascript" src="js.js"></script>
+</body>
+</html>
