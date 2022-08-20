@@ -1,0 +1,36 @@
+00000000  55                push ebp
+00000001  48                dec eax
+00000002  89E5              mov ebp,esp
+00000004  48                dec eax
+00000005  C745F800800B00    mov dword [ebp-0x8],0xb8000
+0000000C  48                dec eax
+0000000D  8B45F8            mov eax,[ebp-0x8]
+00000010  C60058            mov byte [eax],0x58
+00000013  90                nop
+00000014  5D                pop ebp
+00000015  C3                ret
+00000016  0000              add [eax],al
+00000018  1400              adc al,0x0
+0000001A  0000              add [eax],al
+0000001C  0000              add [eax],al
+0000001E  0000              add [eax],al
+00000020  017A52            add [edx+0x52],edi
+00000023  0001              add [ecx],al
+00000025  7810              js 0x37
+00000027  011B              add [ebx],ebx
+00000029  0C07              or al,0x7
+0000002B  08900100001C      or [eax+0x1c000001],dl
+00000031  0000              add [eax],al
+00000033  001C00            add [eax+eax],bl
+00000036  0000              add [eax],al
+00000038  C8FFFFFF          enter 0xffff,0xff
+0000003C  16                push ss
+0000003D  0000              add [eax],al
+0000003F  0000              add [eax],al
+00000041  41                inc ecx
+00000042  0E                push cs
+00000043  108602430D06      adc [esi+0x60d4302],al
+00000049  51                push ecx
+0000004A  0C07              or al,0x7
+0000004C  0800              or [eax],al
+0000004E  0000              add [eax],al

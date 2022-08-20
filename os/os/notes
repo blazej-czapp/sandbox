@@ -1,0 +1,8 @@
+The text segment needn't start at 0x08048000. But that address is the default location of the text segment for ELF on x86/32 and thus, for most x86/32 binaries, the location of their executable code.
+
+Why does ELF default to 0x08048000? Likely because it borrowed that address from the System V i386 ABI.
+
+Why then did System V use 0x08048000? Because, by placing the text segment at that address and the stack just below it (but above 0x08000000), a process could consume only a single second-level page table. In other words, you've got to pick a default, and that address offers a potential performance win, as minimizing page table footprint means optimizing TLB hit rate.
+
+Is there anything below 0x08048000? The stack might be below it, although there could very well be nothing. That address is only 128M.
+
